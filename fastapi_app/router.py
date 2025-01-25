@@ -4,6 +4,7 @@ import numpy as np
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 
+from fastapi_app.enums import BigEndian
 from fastapi_app.schemas import UserEmbeddingRequest, UserFeature
 
 embedding_router = APIRouter()
@@ -11,13 +12,6 @@ embedding_router = APIRouter()
 
 class OctetStreamResponse(Response):
     media_type = "application/octet-stream"
-
-
-def get_nptype(dtype: str):
-    try:
-        return getattr(np, dtype)
-    except:
-        raise
 
 
 @embedding_router.get("/", response_class=JSONResponse)
@@ -35,10 +29,9 @@ async def embedding(user_id: int, command: UserEmbeddingRequest):
     dtype = command.dtype
     size = command.size
 
-    np_dtype = get_nptype(dtype)
-    feature = np.random.standard_normal((1, size)).astype(np_dtype)
+    feature = np.random.standard_normal((1, size)).astype(BigEndian[dtype].value)
 
-    user_vector_list = feature.astype(np.float64).tolist()  # change to 64bit float type
+    user_vector_list = feature.astype("float64").tolist()  # change to 64bit float type
     return UserFeature(user_vector=user_vector_list)
 
 
@@ -53,8 +46,7 @@ async def embedding_octet(command: UserEmbeddingRequest):
     dtype = command.dtype
     size = command.size
 
-    np_dtype = get_nptype(dtype)
-    feature = np.random.standard_normal((1, size)).astype(np_dtype)
+    feature = np.random.standard_normal((1, size)).astype(BigEndian[dtype].value)
     content = feature.tobytes()
 
     return Response(content=content, media_type="application/octet-stream")
@@ -71,8 +63,7 @@ async def embedding_octet_stream(command: UserEmbeddingRequest):
     dtype = command.dtype
     size = command.size
 
-    np_dtype = get_nptype(dtype)
-    feature = np.random.standard_normal((1, size)).astype(np_dtype)
+    feature = np.random.standard_normal((1, size)).astype(BigEndian[dtype].value)
     stream = BytesIO(feature.tobytes())
 
     return StreamingResponse(content=stream, media_type="application/octet-stream")
