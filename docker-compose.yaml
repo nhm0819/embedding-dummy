@@ -1,17 +1,8 @@
 services:
-  app_for_http:
+  app_http:
     image: embedding:v0.0
     ports:
       - 8002:8002
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-
-  app_for_http_octet:
-    image: embedding:v0.0
-    ports:
-      - 8003:8002
     deploy:
       resources:
         limits:
